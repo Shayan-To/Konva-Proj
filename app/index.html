@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Konva Test</title>
+        <style>
+            html,
+            body {
+                min-height: 100%;
+                padding: 0;
+                margin: 0;
+            }
+
+            html,
+            body,
+            #root {
+                display: flex;
+                flex-direction: column;
+                flex-grow: 1;
+                overflow: hidden;
+            }
+
+            #root {
+                position: absolute;
+                inset: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="module" src="./app.ts"></script>
+    </body>
+</html>
