@@ -1,93 +1,92 @@
-import Konva from "konva"
-import { createStage } from './base';
-const logwid = 1000; 
-const loghei = 1000; 
+import Konva from "konva";
+import { createStage } from "./base";
 
-type point = readonly[
-    x : number,
-    y : number 
-]; 
+const logicalWidth = 1000;
+const logicalHeight = 1000;
 
-const stage = createStage(logwid, loghei);
+type Point = readonly [x: number, y: number];
+
+const stage = createStage(logicalWidth, logicalHeight);
 const layer = new Konva.Layer({});
 stage.add(layer);
 const back = new Konva.Rect({
     fill: "lightblue",
-    width: logwid,
-    height: loghei,
+    width: logicalWidth,
+    height: logicalHeight,
 });
 layer.add(back);
-const cellDim = 100; 
-const gridWid = logwid/ cellDim; 
-const gridHei = loghei/ cellDim; 
-const bodyQue : Konva.Rect[] = []; 
-const bodyRec : point[] = []; 
-const food : Konva.Rect[] = []; 
-let done = true, game = true; 
-let direction : point = [1,0]; 
-let head = negate(direction); 
-const moveDel = 400; //ms
-// let food : Konva.Rect; 
 
-(async () => {
-    let prize = makePoint(); 
+const cellDim = 100;
+const gridWidth = logicalWidth / cellDim;
+const gridHeight = logicalHeight / cellDim;
+
+const bodyRects: Konva.Rect[] = [];
+const bodyQueue: Point[] = [];
+let foodRect: Konva.Rect | null = null;
+
+let directionQueue: Point[] = [[1, 0]];
+let head = negate(directionQueue[0]);
+let food = makePoint();
+
+const minMoveDelay = 100; //ms
+const maxMoveDelay = 400; //ms
+let moveDelay = maxMoveDelay;
+
+let version = 0;
+
+async function main() {
+    version += 1;
+    const currentVersion = version;
+
+    bodyRects.splice(0).forEach((r) => r.remove());
+    bodyQueue.splice(0);
+    foodRect?.remove()
+    directionQueue = [[1, 0]];
+    head = negate(directionQueue[0]);
+    moveDelay = maxMoveDelay;
+
     for (const _ of new Array(3).fill(0).map((_, i) => i)) {
         moveHead();
         createCell(head);
-        bodyRec.push(head);
-        await delay(moveDel);
-        done = true; 
+        bodyQueue.push(head);
+        await delay(moveDelay);
     }
-    while(bodyRec.find(i => i === prize)) {
-        food[0].remove(); 
-        food.pop(); 
-        makePoint(); 
-    }
-    createFood(prize); 
-    
-    while (game) {
-        let q = head; 
-        q = add(q, direction); 
-        if(bodyRec.find(i => equ(i, head)) && bodyRec.findIndex(i => equ(i, head)) !== bodyRec.length - 1) {
-            game = false; 
-        }
-        if(game === false) {
-            const end = new Konva.Rect({
-                fill : "dark blue", 
-                height : loghei, 
-                width : logwid, 
-            })
-            layer.add(end); 
-            console.log(`Game over`); 
-            break; 
-        }
+
+    createFood();
+
+    while (version === currentVersion) {
         moveHead();
+        bodyQueue.push(head);
         createCell(head);
-        bodyRec.push(head); 
-        
-       
-        if(!equ(prize, head)) {
-            bodyQue.splice(0, 1)[0].remove();
-            bodyRec.splice(0, 1); 
+
+        if (!equals(food, head)) {
+            bodyRects.splice(0, 1)[0].remove();
+            bodyQueue.splice(0, 1);
+        } else {
+            createFood();
+            moveDelay -= moveDelay * 7/100;
+            moveDelay = Math.max(minMoveDelay, moveDelay);
         }
-        else {
-            food[0].remove(); 
-            food.pop(); 
-            prize = makePoint(); 
-            // while()
-            while(bodyRec.find(i => equ(prize, i))) {
-                prize = makePoint(); 
-            }
-            createFood(prize); 
+
+        if (
+            bodyQueue.find(
+                (p, i) => i !== bodyQueue.length - 1 && equals(p, head)
+            )
+        ) {
+            back.fill("red");
+            console.log(`Game over`);
+            break;
         }
-        await delay(moveDel);
-        done = true; 
-        
+
+        await delay(moveDelay);
     }
-})();
+}
+
+main();
 
 document.onkeydown = (e) => {
-    let newDirection: point | undefined;
+    let newDirection: Point | undefined;
+    console.log(e.key);
     switch (e.key) {
         case "ArrowLeft":
             newDirection = [-1, 0];
@@ -95,83 +94,91 @@ document.onkeydown = (e) => {
         case "ArrowRight":
             newDirection = [1, 0];
             break;
-            case "ArrowUp":
-                newDirection = [0, -1];
-                break;
-                case "ArrowDown":
-                    newDirection = [0, 1];
-                    break;
-                }
-                if (newDirection !== undefined && !equ(newDirection, negate(direction)) && done) {
-                    direction = newDirection; done = false; 
-                }
+        case "ArrowUp":
+            newDirection = [0, -1];
+            break;
+        case "ArrowDown":
+            newDirection = [0, 1];
+            break;
+        case "r":
+        case "R":
+            main();
+            break;
+    }
+    if (newDirection === undefined) {
+        return;
+    }
+    while (directionQueue.length > 2) {
+        directionQueue.pop();
+    }
+    if (
+        !equals(newDirection, negate(directionQueue[directionQueue.length - 1]))
+    ) {
+        directionQueue.push(newDirection);
+    }
 };
 
 function delay(ms: number) {
     return new Promise((resolve) => setInterval(resolve, ms));
 }
-function add ([x1, y1] : point, [x2, y2] : point) : point{
-    return [x1 + x2, y1 + y2];   
-}; 
-function negate ([x, y] : point) : point{
-    return [-x, -y]; 
+
+function add([x1, y1]: Point, [x2, y2]: Point): Point {
+    return [x1 + x2, y1 + y2];
 }
-function mod([x1, y1]  : point , [x2, y2] : point) : point{ 
-    return [((x1 % x2) + x2 )% x2, ((y1 % y2) + y2) % y2] ; 
+
+function negate([x, y]: Point): Point {
+    return [-x, -y];
 }
-/*
+
 function mod([x1, y1]: Point, [x2, y2]: Point): Point {
     return [((x1 % x2) + x2) % x2, ((y1 % y2) + y2) % y2];
 }
-*/
-function equ ([x1, y1] : point, [x2, y2] : point)  : boolean{ 
-    return x1 === x2 && y1 === y2; 
+
+function equals([x1, y1]: Point, [x2, y2]: Point): boolean {
+    return x1 === x2 && y1 === y2;
 }
-function moveHead () {
-    head = mod(add(head, direction), [gridWid, gridHei]); 
+
+function moveHead() {
+    if (directionQueue.length > 1) {
+        directionQueue.splice(0, 1);
+    }
+    head = mod(add(head, directionQueue[0]), [gridWidth, gridHeight]);
 }
-function makePoint () : point {
-    const x = Math.floor(Math.random() * 10); 
-    const y = Math.floor(Math.random() * 10); 
-    return [x, y]; 
+
+function makePoint(): Point {
+    const x = Math.floor(Math.random() * gridWidth);
+    const y = Math.floor(Math.random() * gridHeight);
+    return [x, y];
 }
-function createCell([x, y]: point) {
-    const cell = new Konva.Rect({
-        fill: `black`, //`hsl(${Math.random() * 360}, 100%, 50%)`,
+
+function createCell(p: Point) {
+    const cell = createRect(p, "black");
+    layer.add(cell);
+    bodyRects.push(cell);
+}
+
+function createFood() {
+    foodRect?.remove();
+    foodRect = null;
+    while (true) {
+        food = makePoint();
+        if (!bodyQueue.find((p) => equals(food, p))) {
+            break;
+        }
+    }
+
+    const cell = createRect(food, "purple");
+    cell.on("click", () => cell.fill("blue"));
+    layer.add(cell);
+    foodRect = cell;
+}
+
+function createRect([x, y]: Point, color: string) {
+    return new Konva.Rect({
+        fill: color, //`hsl(${Math.random() * 360}, 100%, 50%)`,
         width: cellDim,
         height: cellDim,
         x: x * cellDim,
         y: y * cellDim,
     });
-    layer.add(cell);
-    bodyQue.push(cell);
-     
 }
-function createFood ([x, y] : point) {
-    const cell = new Konva.Rect({
-        fill : `purple`, 
-        width : cellDim, 
-        height : cellDim, 
-        x : x * cellDim, 
-        y : y * cellDim, 
-    }); 
-    layer.add(cell); 
-    // food = cell; 
-    food.push(cell); 
-
-}
-
-   
-/*
-function createCell([x, y]: point) {
-    const cell = new Konva.Rect({
-        fill: "black", // `hsl(${Math.random() * 360}, 100%, 50%)`,
-        width: cellDim,
-        height: cellDim,
-        x: x * cellDim,
-        y: y * cellDim,
-    });
-    layer.add(cell);
-    bodyQue.push(cell);
-}
-*/
