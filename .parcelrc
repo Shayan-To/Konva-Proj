@@ -1,0 +1,7 @@
+{
+    "extends": "@parcel/config-default",
+    "transformers": {
+        "raw-string:*": ["@parcel/transformer-inline-string"]
+    },
+    "resolvers": ["@parcel/resolver-glob", "..."]
+}
