@@ -1,27 +1,10 @@
 import Konva from "konva";
+import { createStage } from "./base";
 
 const logicalWidth = 1000;
 const logicalHeight = 1000;
 
-const rootDiv = document.getElementById("root")! as HTMLDivElement;
-
-new ResizeObserver(() => {
-    const [width, height] = [rootDiv.clientWidth, rootDiv.clientHeight];
-    stage.width(width).height(height);
-    const scale = Math.min(width / logicalWidth, height / logicalHeight);
-    stage.scale({ x: scale, y: scale });
-    stage.position({
-        x: (width - scale * logicalWidth) / 2,
-        y: (height - scale * logicalHeight) / 2,
-    });
-}).observe(rootDiv);
-
-const stage = new Konva.Stage({
-    container: rootDiv,
-    width: rootDiv.clientWidth,
-    height: rootDiv.clientHeight,
-});
-
+const stage = createStage(logicalWidth, logicalHeight);
 const layer = new Konva.Layer({});
 stage.add(layer);
 
