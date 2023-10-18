@@ -13,5 +13,8 @@
         "titleBar.inactiveBackground": "#41dcd999",
         "titleBar.inactiveForeground": "#15202b99"
     },
-    "peacock.color": "#41dcd9"
+    "peacock.color": "#41dcd9",
+    "cSpell.words": [
+        "Konva"
+    ]
 }

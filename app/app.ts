@@ -1,8 +1,11 @@
 import Konva from "konva";
 import { createStage } from "./base";
 
-const logicalWidth = 1000;
-const logicalHeight = 1000;
+const cellDim = 100;
+const gridWidth = 15;
+const gridHeight = 10;
+const logicalWidth = gridWidth * cellDim;
+const logicalHeight = gridHeight * cellDim;
 
 type Point = readonly [x: number, y: number];
 
@@ -15,10 +18,6 @@ const back = new Konva.Rect({
     height: logicalHeight,
 });
 layer.add(back);
-
-const cellDim = 100;
-const gridWidth = logicalWidth / cellDim;
-const gridHeight = logicalHeight / cellDim;
 
 const bodyRects: Konva.Rect[] = [];
 const bodyQueue: Point[] = [];
@@ -38,9 +37,10 @@ async function main() {
     version += 1;
     const currentVersion = version;
 
+    back.fill("lightblue");
     bodyRects.splice(0).forEach((r) => r.remove());
     bodyQueue.splice(0);
-    foodRect?.remove()
+    foodRect?.remove();
     directionQueue = [[1, 0]];
     head = negate(directionQueue[0]);
     moveDelay = maxMoveDelay;
@@ -64,7 +64,7 @@ async function main() {
             bodyQueue.splice(0, 1);
         } else {
             createFood();
-            moveDelay -= moveDelay * 7/100;
+            moveDelay -= (moveDelay * 7) / 100;
             moveDelay = Math.max(minMoveDelay, moveDelay);
         }
 
