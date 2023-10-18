@@ -21,3 +21,32 @@ export function createStage(logicalWidth: number, logicalHeight: number) {
     });
     return stage;
 }
+
+export function createSvgImage(svgString: string, config: Partial<Konva.ImageConfig>) {
+    const domParser = new DOMParser();
+    const xmlSerializer = new XMLSerializer();
+
+    var svgDoc = domParser.parseFromString(svgString, "image/svg+xml");
+    svgDoc.documentElement.setAttribute("width", "50px");
+    svgDoc.documentElement.setAttribute("height", "50px");
+
+    return new Promise<Konva.Image>((resolve, reject) => {
+        var img = document.createElement("img");
+        img.onload = function () {
+            resolve(
+                new Konva.Image({
+                    ...config,
+                    image: img,
+                })
+            );
+        };
+        img.onerror = (event, source, lineno, colno, error) =>
+            reject({ event, source, lineno, colno, error });
+        img.crossOrigin = "Anonymous";
+        img.src = URL.createObjectURL(
+            new Blob([xmlSerializer.serializeToString(svgDoc)], {
+                type: "image/svg+xml",
+            })
+        );
+    });
+}

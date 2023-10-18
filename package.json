@@ -5,10 +5,12 @@
         "start": "parcel serve"
     },
     "dependencies": {
-        "konva": "^9.2.0"
+        "konva": "^9.2.2"
     },
     "devDependencies": {
-        "parcel": "^2.9.3",
+        "@parcel/resolver-glob": "^2.10.0",
+        "@parcel/transformer-inline-string": "^2.10.0",
+        "parcel": "^2.10.0",
         "typescript": "^5.2.2"
     },
     "source": "app/index.html"
