@@ -17,9 +17,9 @@ var firstClick : boolean = false;
 var secondClick : boolean = false; 
 const stage = createStage(logicalWidth, logicalHeight);
 const layer = new Konva.Layer({});
-
 stage.add(layer); 
 const timeCheck = 300; 
+var turn = true; 
 const Border = new Konva.Rect({
     fill:"Black", 
     width : logicalWidth + 10, 
@@ -56,10 +56,12 @@ for (let i = 1; i <= 8; i++) {
 var tpe : PieceType; 
 var x1 : number, x2 : number, y1 : number, y2 : number; 
 var blk : boolean; 
-var pce : Konva.Node; 
+var pce : Konva.Node;
+var moh : Konva.Node;  
+var redline : Konva.Rect; 
 async function createPiece(x: number, y: number, b: boolean, p: PieceType) {
     const piece = await createSvgImage(piecesSvg[`${b ? "w" : "b"}${p}`], {
-        width: cellDim,
+        width: cellDim - 2,
         height: cellDim,
         x: cellDim * (x - 1),
         y: cellDim * (y - 1),
@@ -67,14 +69,29 @@ async function createPiece(x: number, y: number, b: boolean, p: PieceType) {
     console.log(typeof(piece)); 
     layer.add(piece);
     piece.on("click", ()=>{
-        firstClick = true; 
-        x1 = x; 
-        y1 = y; 
-        tpe = p; 
-        blk = b; 
-        pce = piece; 
-        // movePiece(piece, cell); 
+            //if(turn && b){
+        if((turn && b) || (!turn && !b)) {
+            if(firstClick) {
+                redline.remove(); 
+            }
+            x1 = x; 
+            y1 = y; 
+            tpe = p; 
+            blk = b; 
+            pce = piece; 
+            firstClick = true; 
+            const underline = new Konva.Rect({
+                fill : "RED", 
+                x : (x - 1 + 1/20) * cellDim ,
+                y : (y - 1/30) * cellDim,
+                height : -cellDim/20, 
+                width : 9 * cellDim / 10, 
+            })
+            layer.add(underline); 
+            redline = underline; 
+        }
     })
+        
 }
 
 // cell.on("click", () => cell.fill("blue"));
@@ -144,4 +161,6 @@ function pieceMove() : void {
     createPiece(x2, y2, blk, tpe);
     firstClick = false; 
     secondClick = false;  
+    redline.remove (); 
+    turn = !turn; 
 }
