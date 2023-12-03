@@ -22,8 +22,10 @@ var captureOp : boolean;
 stage.add(layer); 
 const timeCheck = 300; 
 var turn = true; 
-
 var occupied : boolean[][] = []; 
+var blackCheck = false; 
+var whiteCheck = false; 
+
 
 occupied[0] = []; 
 for (var i = 1; i <= 8; i ++) {
@@ -240,7 +242,7 @@ function validMove () : boolean {
         if (abs(x1 - x2) === abs(y1 - y2)) {
             var a = x2 - x1, b = y2 - y1; 
             console.log(`${x1} - ${y1} - ${x2} - ${y2}\n`); 
-            for (var i = a/abs(a), j = b/abs(b); abs(i) <= abs(a) ; i += (a/abs(a)), j += b/abs(b)) {
+            for (var i = a/abs(a), j = b/abs(b); abs(i) < abs(a) ; i += (a/abs(a)), j += b/abs(b)) {
                 if(occupied[x1 + i][y1 + j]) return false; 
 
                 // j += (b/abs(b)); 
@@ -258,34 +260,38 @@ function validMove () : boolean {
                 console.log(`${x1} - ${y1} - ${x2} - ${y2}\n`); 
                 
                 if (a == 0) {
-                    for (var i = b/abs(b); abs(i) <= abs(b); i += b/abs(b)) {
-                        if (occupied[x1][y1 + i]) return false; 
+                    for (var i = b/abs(b); abs(i) < abs(b); i += b/abs(b)) {
+                        if (occupied[y1 + i][x1]) return false; 
                     }
                     
                 }        
                 else {
-                    for (var i = a/abs(a); abs(i) <= abs(a); i += a/abs(b)) {
-                        if(occupied[x1 + i][y1]) return false; 
+                    for (var i = a/abs(a); abs(i) < abs(a); i += a/abs(b)) {
+                        if(occupied[y1][x1 + i]) return false; 
                     }
                 }
-                // return true; 
+                return true; 
             }
             else {
                 if (abs(x1 - x2) === abs(y1 - y2)) {
                     var a = x2 - x1, b = y2 - y1; 
                     console.log(`${x1} - ${y1} - ${x2} - ${y2}\n`); 
-                    for (var i = a/abs(a), j = b/abs(b); abs(i) <= abs(a) ; i += (a/abs(a)), j += b/abs(b)) {
-                        if(occupied[x1 + i][y1 + j]) return false; 
+                    for (var i = a/abs(a), j = b/abs(b); abs(i) < abs(a) ; i += (a/abs(a)), j += b/abs(b)) {
+                        if(occupied[x1 + i][y1 + j]) {
+                            console.log(`${x1} - ${y1} - ${x2} - ${y2}\n`); 
+                            return false; 
+                        }
         
                         // j += (b/abs(b)); 
                     }          
-                    // return true; 
+                    return true; 
                 }
             }
         }
         else {
             return false; 
         }
+        return true; 
     }
 
     // done
@@ -312,6 +318,7 @@ function validMove () : boolean {
         else {
             return false; 
         }
+        return true; 
     }
 
     // done 
@@ -322,17 +329,17 @@ function validMove () : boolean {
             console.log(`${x1} - ${y1} - ${x2} - ${y2}\n`); 
             
             if (a == 0) {
-                for (var i = b/abs(b); abs(i) <= abs(b); i += b/abs(b)) {
-                    if (occupied[x1][y1 + i]) return false; 
+                for (var i = b/abs(b); abs(i) < abs(b); i += b/abs(b)) {
+                    if (occupied[y1 + i][x1]) return false; 
                 }
                 
-            }        
+            }          
             else {
-                for (var i = a/abs(a); abs(i) <= abs(a); i += a/abs(b)) {
-                    if(occupied[x1 + i][y1]) return false; 
+                for (var i = a/abs(a); abs(i) < abs(a); i += a/abs(b)) {
+                    if(occupied[y1][x1 + i]) return false; 
                 }
             }
-            // return true; 
+            return true; 
         }       
         else {
             return false; 
@@ -346,7 +353,7 @@ function pieceMove() : void {
     pce.remove(); 
     createPiece(x2, y2, wht, tpe);
     firstClick = false; 
-    secondClick = false;  
+     secondClick = false;  
     redline.remove (); 
     occupied[x1][y1] = false; 
     occupied[x2][y2] = true; 
